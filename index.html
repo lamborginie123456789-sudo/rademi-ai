@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>RADEMI AI — Desktop Companion</title>
-<link rel="stylesheet" href="style.css?v=23">
+<link rel="manifest" href="/manifest.json"><link rel="icon" href="/icon.png">
+<link rel="stylesheet" href="/style.css?v=24">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute"><defs><linearGradient id="gradGauge" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#22c55e"/><stop offset="55%" stop-color="#eab308"/><stop offset="100%" stop-color="#ef4444"/></linearGradient></defs></svg>
@@ -75,20 +76,76 @@
 <button onclick="sendKey('alttab','')" style="background:rgba(255,255,255,.08);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:700;cursor:pointer">🔀 Alt+Tab</button>
 <button onclick="sendKey('enter','')" style="background:var(--glow);border:1px solid var(--accent);color:#fff;padding:10px;border-radius:10px;font-weight:700;cursor:pointer">↵ Enter</button>
 </div>
-<div style="display:flex;gap:6px"><input id="rem-txt" placeholder="Nachricht direkt an Rademi senden..." style="flex:1;background:rgba(0,0,0,.4);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px"><button onclick="sendTxtPC()" style="background:var(--accent);color:#050811;border:none;padding:0 14px;border-radius:10px;font-weight:800;cursor:pointer">Senden</button><button onclick="sendKey('esc','')" style="background:rgba(255,255,255,.08);border:1px solid var(--border);color:#fff;padding:0 12px;border-radius:10px;font-weight:700;cursor:pointer">Esc</button><button onclick="sendKey('space','')" style="background:rgba(255,255,255,.08);border:1px solid var(--border);color:#fff;padding:0 12px;border-radius:10px;font-weight:700;cursor:pointer">␣</button></div>
+<div style="display:flex;gap:6px"><input id="rem-txt" placeholder="Nachricht direkt an Rademi auf dem PC..." style="flex:1;background:rgba(0,0,0,.4);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px"><button onclick="sendTxtPC()" style="background:var(--accent);color:#050811;border:none;padding:0 14px;border-radius:10px;font-weight:800;cursor:pointer">Senden</button><button onclick="sendKey('esc','')" style="background:rgba(255,255,255,.08);border:1px solid var(--border);color:#fff;padding:0 12px;border-radius:10px;font-weight:700;cursor:pointer">Esc</button><button onclick="sendKey('space','')" style="background:rgba(255,255,255,.08);border:1px solid var(--border);color:#fff;padding:0 12px;border-radius:10px;font-weight:700;cursor:pointer">␣</button></div>
+</div>
+
+<div style="border-top:1px solid var(--border);padding-top:14px">
+<div class="card-title"><span>🌐 BROWSER & YOUTUBE DECK</span></div>
+<div class="grid-4">
+<button onclick="sendKey('newtab','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">➕ Neuer Tab</button>
+<button onclick="sendKey('closetab','')" style="background:rgba(239,68,68,.18);border:1px solid #ef4444;color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">✖️ Tab Zu</button>
+<button onclick="sendKey('nexttab','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">⇥ Nächster Tab</button>
+<button onclick="sendKey('reopentab','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">↩️ Tab Zurück</button>
+<button onclick="sendKey('f5','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">🔄 Reload F5</button>
+<button onclick="sendKey('j','')" style="background:rgba(56,189,248,.16);border:1px solid #38bdf8;color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">⏪ −10 Sek</button>
+<button onclick="sendKey('k','')" style="background:rgba(56,189,248,.22);border:1px solid #38bdf8;color:#fff;padding:10px;border-radius:10px;font-weight:700;cursor:pointer">⏯️ YT Play</button>
+<button onclick="sendKey('l','')" style="background:rgba(56,189,248,.16);border:1px solid #38bdf8;color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">⏩ +10 Sek</button>
+<button onclick="sendKey('f','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">🖥️ YT Vollbild</button>
+<button onclick="sendKey('c','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">💬 Untertitel</button>
+<button onclick="sendKey('copy','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">📋 Kopieren</button>
+<button onclick="sendKey('paste','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">📥 Einfügen</button>
+</div>
 </div>
 <div style="border-top:1px solid var(--border);padding-top:14px">
-<div class="card-title"><span>🔊 LAUTSTÄRKE & MEDIEN</span><span id="vol-lbl" style="color:#fff;font-weight:800">50 %</span></div>
+<div class="card-title"><span>🔊 LAUTSTÄRKE & HELLIGKEIT</span><span id="vol-lbl" style="color:#fff;font-weight:800">50 %</span></div>
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
 <button onclick="stepVol(-2)" style="background:rgba(255,255,255,.08);border:1px solid var(--border);color:#fff;padding:9px 12px;border-radius:10px;font-weight:800;cursor:pointer">−2%</button>
 <input id="vol-rng" type="range" min="0" max="100" value="50" oninput="liveVol(this.value)" onchange="liveVol(this.value)" style="flex:1;accent-color:var(--accent);height:32px;cursor:pointer">
 <button onclick="stepVol(2)" style="background:rgba(255,255,255,.08);border:1px solid var(--border);color:#fff;padding:9px 12px;border-radius:10px;font-weight:800;cursor:pointer">+2%</button>
 </div>
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+<span style="font-size:.78rem;color:var(--muted);width:68px">☀️ Helligkeit</span>
+<input type="range" min="10" max="100" value="80" onchange="silentCmd('helligkeit '+this.value)" style="flex:1;accent-color:#fbbf24;height:28px;cursor:pointer">
+</div>
+<div style="display:flex;gap:6px;margin-bottom:8px"><input id="rem-song" placeholder="Song / Künstler auf Spotify abspielen..." style="flex:1;background:rgba(0,0,0,.4);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px"><button onclick="playSongRem()" style="background:#22c55e;color:#050811;border:none;padding:0 14px;border-radius:10px;font-weight:800;cursor:pointer">▶ Play</button></div>
 <div class="grid-4">
 <button onclick="silentCmd('zurück')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:700;cursor:pointer">⏮️ Zurück</button>
 <button onclick="silentCmd('pause')" style="background:var(--glow);border:1px solid var(--accent);color:#fff;padding:11px;border-radius:10px;font-weight:700;cursor:pointer">⏯️ Pause</button>
 <button onclick="silentCmd('weiter')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:700;cursor:pointer">⏭️ Weiter</button>
 <button onclick="silentCmd('ton aus')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:700;cursor:pointer">🔇 Stumm</button>
+</div>
+</div>
+
+<div style="border-top:1px solid var(--border);padding-top:14px">
+<div class="card-title"><span>🎛️ SYSTEM, FENSTER & QUICK-APPS</span></div>
+<input id="rem-app" placeholder="App- oder Bluetooth-Name (z.B. Chrome, Kopfhörer)..." style="width:100%;margin-bottom:10px;background:rgba(0,0,0,.4);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px">
+<div class="grid-4">
+<button onclick="sendKey('snapleft','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">◧ Links Snap</button>
+<button onclick="sendKey('snapright','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">◨ Rechts Snap</button>
+<button onclick="sendKey('deskprev','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">⬅️ Desktop 1</button>
+<button onclick="sendKey('desknext','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">➡️ Desktop 2</button>
+<button onclick="sendKey('snip','')" style="background:rgba(168,85,247,.18);border:1px solid #a855f7;color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">✂️ Screenshot</button>
+<button onclick="sendKey('undo','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">↶ Rückgängig</button>
+<button onclick="launchApp('Rechner')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">🧮 Rechner</button>
+<button onclick="launchApp('Explorer')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">📁 Explorer</button>
+<button onclick="launchApp('Einstellungen')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">⚙️ Settings</button>
+<button onclick="silentCmd('fasse meine zwischenablage zusammen')" style="background:rgba(56,189,248,.16);border:1px solid #38bdf8;color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">📄 Clipboard KI</button>
+<button onclick="silentCmd('bildschirm schwarz')" style="background:#000;border:1px solid var(--accent);color:#fff;padding:11px;border-radius:10px;font-weight:700;cursor:pointer">⬛ Tarn-Screen</button>
+<button onclick="silentCmd('lock')" style="background:rgba(245,158,11,.2);border:1px solid #f59e0b;color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">🔒 Sperren</button>
+<button onclick="silentCmd('alle fenster minimieren')" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">🪟 Desktop</button>
+<button onclick="silentCmd('energie sparen')" style="background:rgba(245,158,11,.2);border:1px solid #f59e0b;color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">💤 Standby</button>
+<button onclick="remAct('schließe')" style="background:rgba(239,68,68,.2);border:1px solid #ef4444;color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">❌ App Aus</button>
+<button onclick="remAct('minimiere')" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">🔽 Minimieren</button>
+<button onclick="remAct('vollbild')" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">🖥️ Vollbild</button>
+<button onclick="silentCmd('öffne task-manager')" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">📊 Task-Mgr</button>
+<button onclick="remAct('bluetooth verbinden')" style="background:rgba(56,189,248,.18);border:1px solid #38bdf8;color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">🔵 BT An</button>
+<button onclick="remAct('bluetooth trennen')" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">⚪ BT Aus</button>
+<button onclick="silentCmd('bluetooth geräte')" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">📋 BT Liste</button>
+<button onclick="silentCmd('timer 5 min')" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">⏱️ 5m Timer</button>
+<button onclick="silentCmd('workflow gaming')" style="background:rgba(168,85,247,.2);border:1px solid #a855f7;color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">🎮 Gaming</button>
+<button onclick="silentCmd('backup erstellen')" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">💾 Backup</button>
+<button onclick="silentCmd('pc neustarten')" style="background:rgba(239,68,68,.2);border:1px solid #ef4444;color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">🔄 Neustart</button>
+<button onclick="silentCmd('pc herunterfahren')" style="background:rgba(239,68,68,.28);border:1px solid #ef4444;color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">🛑 PC Aus</button>
 </div>
 </div>
 </div>
@@ -131,5 +188,5 @@
 </section>
 </main>
 
-<script src="charts.js?v=23"></script><script src="cards.js?v=23"></script><script src="app.js?v=23"></script>
+<script src="/charts.js?v=24"></script><script src="/cards.js?v=24"></script><script src="/app.js?v=24"></script>
 </body></html>
