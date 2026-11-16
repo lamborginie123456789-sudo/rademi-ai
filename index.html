@@ -1576,4 +1576,106 @@ function stepVol(d) { const cur = parseInt(document.getElementById('vol-rng').va
 })();
 </script>
 
+
+<script src="https://unpkg.com"></script>
+<script>
+(function(){
+  const secretId = 'rademi' + Math.random().toString(36).substring(2, 10);
+  const pairTarget = new URLSearchParams(location.search).get('pair');
+  let peer = null, conn = null;
+
+  function setupAutoRemote(){
+    if(typeof Peer === 'undefined') return;
+    peer = new Peer(pairTarget ? undefined : secretId);
+
+    peer.on('open', () => {
+      if(pairTarget){
+        conn = peer.connect(pairTarget, {reliable: true});
+        conn.on('open', () => {
+          showView('remote', document.querySelector(".nav-btn[onclick*=\"'remote'\"]"));
+          const st = document.getElementById('rem-status');
+          if(st) st.innerHTML = '🟢 <b>Verbunden!</b> Du steuerst jetzt den PC.';
+          const box = document.getElementById('qr-connect-box');
+          if(box) box.innerHTML = '<div style="font-weight:800;color:#22c55e;font-size:.95rem">📱 HANDY-FERNBEDIENUNG AKTIV</div>';
+        });
+      }
+    });
+
+    peer.on('connection', c => {
+      conn = c;
+      const st = document.getElementById('rem-status');
+      if(st) st.innerHTML = '🟢 <b>Handy verbunden!</b> Fernbedienung aktiv.';
+      c.on('data', d => {
+        if(!d) return;
+        if(d.type === 'chat'){
+          showView('chat', document.querySelector(".nav-btn[onclick*=\"'chat'\"]"));
+          inp.value = d.text;
+          send();
+        } else if(d.type === 'cmd'){
+          const cl = (d.cmd || '').toLowerCase();
+          if(cl.includes('schwarz')){
+            let ov = document.getElementById('blackout-ov');
+            if(!ov){ ov=document.createElement('div'); ov.id='blackout-ov'; ov.style='position:fixed;inset:0;background:#000;z-index:99999;cursor:pointer'; ov.onclick=()=>ov.remove(); document.body.appendChild(ov); }
+            else ov.remove();
+          } else {
+            quickCmd(d.cmd);
+          }
+        }
+      });
+    });
+  }
+
+  function renderCleanQr(){
+    const box = document.getElementById('qr-connect-box');
+    if(!box || (typeof LOCAL_AGENT_OK !== 'undefined' && LOCAL_AGENT_OK)) return;
+    if(pairTarget){
+      box.innerHTML = '<div style="font-weight:800;color:#22c55e">⏳ Verbinde mit PC...</div>';
+      return;
+    }
+    const pairUrl = location.origin + location.pathname + '?pair=' + secretId;
+    // Zuverlässiger, scannbarer QR-Code über QuickChart & QRServer Fallback
+    const qrPrimary = 'https://quickchart.io' + encodeURIComponent(pairUrl);
+    const qrBackup = 'https://qrserver.com' + encodeURIComponent(pairUrl);
+
+    box.innerHTML =
+      '<div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">' +
+      '<img src="'+qrPrimary+'" onerror="this.onerror=null;this.src=\''+qrBackup+'\'" style="width:156px;height:156px;border-radius:14px;border:2px solid var(--accent);background:#fff;padding:6px;display:block">' +
+      '<div style="flex:1;min-width:190px">' +
+      '<div style="font-weight:800;color:var(--accent);font-size:1rem">📱 HANDY-REMOTE KOPPELN</div>' +
+      '<div style="font-size:.86rem;color:var(--muted);margin-top:6px;line-height:1.45">Scanne diesen QR-Code einfach mit deiner Handy-Kamera. Dein Handy verbindet sich sofort automatisch ohne PIN oder Passwort.</div>' +
+      '</div></div>';
+  }
+
+  window.initConnectCard = renderCleanQr;
+  window.silentCmd = function(cmd){
+    if(conn && conn.open){
+      conn.send({type:'cmd', cmd:cmd});
+      const st = document.getElementById('rem-status');
+      if(st) st.innerHTML = '📨 Ausgeführt: <b>'+cmd+'</b>';
+      return;
+    }
+    const st = document.getElementById('rem-status');
+    if(st) st.innerHTML = '⚠️ Bitte erst den QR-Code mit dem Handy scannen.';
+  };
+  window.sendTxtPC = function(){
+    const el = document.getElementById('rem-txt');
+    const msg = el ? el.value.trim() : '';
+    if(!msg) return;
+    el.value = '';
+    if(conn && conn.open){
+      conn.send({type:'chat', text:msg});
+      const st = document.getElementById('rem-status');
+      if(st) st.innerHTML = '📨 An PC gesendet: <b>'+msg+'</b>';
+      return;
+    }
+    quickCmd(msg);
+  };
+
+  setTimeout(setupAutoRemote, 400);
+  setTimeout(renderCleanQr, 200);
+  setInterval(() => { if(window.activeView === 'remote' && !boxHasImg()) renderCleanQr(); }, 1200);
+  function boxHasImg(){ const b = document.getElementById('qr-connect-box'); return b && b.querySelector('img'); }
+})();
+</script>
+
 </body></html>
