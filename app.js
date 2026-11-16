@@ -201,7 +201,7 @@ window.fetch = function(u, opt = {}) {
                 disk_text: 'Cloud / Web-App', disk_pct: 35, disk_read_mb: 0, disk_write_mb: 0, drives: [],
                 net_down: 0.4, net_up: 0.1, ping_ms: 18, net_online: navigator.onLine, fans: [],
                 extra_sensors: [{ name: 'Browser-Modus', sub: 'WebGPU aktiv (ohne Installation)', val: 'Online' }],
-                history: { cpu: fake.concat(fake), gpu:, ram:, net: [0.2, 0.4, 0.3, 0.4] }
+                history: { cpu: fake.concat(fake), gpu: new Array(), ram: new Array(), net: [0.2, 0.4, 0.3, 0.4] }
             }), { headers: { 'Content-Type': 'application/json' } }));
         }
         if (u.startsWith('/api/screen') || u.startsWith('/api/stream.mjpg')) u += (u.includes('?') ? '&' : '?') + 'pin=' + encodeURIComponent(pin);
