@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>RADEMI AI — Desktop Companion</title>
+<link rel="manifest" href="/manifest.json"><link rel="icon" href="/icon.png">
+
+<style>
+:root {
+  --bg: #050811;
+  --panel: rgba(11, 17, 32, 0.86);
+  --card: rgba(16, 24, 44, 0.78);
+  --card-hover: rgba(22, 33, 59, 0.9);
+  --border: rgba(148, 163, 184, 0.14);
+  --border-hi: rgba(56, 189, 248, 0.35);
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --accent: #38bdf8;
+  --accent-2: #0284c7;
+  --glow: rgba(56, 189, 248, 0.16);
+}
+body.mode-gaming { --accent: #c084fc; --accent-2: #9333ea; --glow: rgba(192, 132, 252, 0.2); --border-hi: rgba(192, 132, 252, 0.4); }
+body.mode-diagnose { --accent: #fbbf24; --accent-2: #d97706; --glow: rgba(251, 191, 36, 0.18); --border-hi: rgba(251, 191, 36, 0.4); }
+body.mode-ki { --accent: #34d399; --accent-2: #059669; --glow: rgba(52, 211, 153, 0.2); --border-hi: rgba(52, 211, 153, 0.4); }
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+body {
+  background: radial-gradient(ellipse at 12% 0%, #102046 0%, #070b17 48%, var(--bg) 100%);
+  color: var(--text); display: flex; height: 100dvh; overflow: hidden;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.2); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+@keyframes pulseOrb {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 14px var(--accent); }
+  50% { transform: scale(1.16); box-shadow: 0 0 24px var(--accent); }
+}
+
+aside {
+  width: 252px; background: var(--panel); backdrop-filter: blur(18px);
+  border-right: 1px solid var(--border); padding: 16px 12px;
+  display: flex; flex-direction: column; gap: 5px; overflow-y: auto; flex-shrink: 0;
+}
+.brand-box { display: flex; align-items: center; gap: 11px; padding: 6px 10px 15px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+.orb { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); animation: pulseOrb 3s infinite ease-in-out; flex-shrink: 0; }
+.brand { font-size: 1.08rem; font-weight: 800; letter-spacing: 1.8px; background: linear-gradient(90deg, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+.new-chat-btn {
+  background: linear-gradient(135deg, var(--glow), rgba(255,255,255,0.03));
+  border: 1px solid var(--border-hi); color: #fff; padding: 10px 13px; border-radius: 12px;
+  cursor: pointer; font-size: 0.85rem; font-weight: 700; text-align: left; margin-bottom: 6px; transition: 0.2s;
+}
+.new-chat-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px var(--glow); }
+
+.nav-btn {
+  background: transparent; border: 1px solid transparent; color: var(--muted); text-align: left;
+  padding: 9px 12px; border-radius: 11px; cursor: pointer; font-size: 0.86rem; font-weight: 600; transition: 0.18s; white-space: nowrap;
+}
+.nav-btn:hover { background: rgba(255,255,255,0.05); color: #fff; transform: translateX(2px); }
+.nav-btn.active { background: var(--glow); border-color: var(--border-hi); color: #fff; box-shadow: inset 3px 0 0 var(--accent); }
+
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
+.m-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--muted); padding: 8px 6px; border-radius: 10px; font-size: 0.76rem; font-weight: 700; cursor: pointer; transition: 0.18s; }
+.m-btn:hover { color: #fff; border-color: rgba(255,255,255,0.25); }
+.m-btn.active { background: var(--glow); border-color: var(--accent); color: #fff; box-shadow: 0 0 12px var(--glow); }
+.hud-toggle { margin-top: 5px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text); padding: 8px 10px; border-radius: 10px; font-size: 0.78rem; font-weight: 600; cursor: pointer; text-align: center; transition: 0.18s; }
+.hud-toggle:hover { background: rgba(255,255,255,0.08); border-color: var(--border-hi); }
+
+main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+.topbar {
+  height: 56px; padding: 0 24px; border-bottom: 1px solid var(--border);
+  background: rgba(8, 13, 25, 0.72); backdrop-filter: blur(14px);
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-shrink: 0;
+}
+.page-title { font-size: 1.02rem; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.status-pill { background: var(--glow); border: 1px solid var(--border-hi); color: #fff; padding: 5px 14px; border-radius: 99px; font-size: 0.76rem; font-weight: 700; white-space: nowrap; box-shadow: 0 0 14px var(--glow); }
+.view { display: none; flex: 1; padding: 20px 24px; overflow-y: auto; flex-direction: column; gap: 16px; }
+.view.active { display: flex; }
+
+#chat-box { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding-right: 4px; }
+.welcome-hero { margin: auto; text-align: center; max-width: 660px; padding: 20px; }
+.welcome-hero h1 { font-size: 1.7rem; font-weight: 800; margin-bottom: 18px; background: linear-gradient(135deg, #fff 35%, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.starter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left; }
+.starter-card { background: var(--card); backdrop-filter: blur(12px); border: 1px solid var(--border); padding: 15px 16px; border-radius: 16px; cursor: pointer; font-size: 0.86rem; color: var(--text); transition: 0.2s; box-shadow: 0 6px 20px rgba(0,0,0,0.22); }
+.starter-card:hover { border-color: var(--accent); background: var(--card-hover); transform: translateY(-2px); box-shadow: 0 10px 24px var(--glow); }
+
+.msg { max-width: 82%; padding: 13px 17px; border-radius: 18px; line-height: 1.55; font-size: 0.93rem; white-space: pre-wrap; word-break: break-word; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+.msg.user { align-self: flex-end; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #040814; font-weight: 600; border-bottom-right-radius: 4px; }
+.msg.ai { align-self: flex-start; background: var(--card); backdrop-filter: blur(12px); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+
+.chat-input-bar { display: flex; gap: 9px; padding-top: 8px; }
+.chat-input-bar input { flex: 1; min-width: 0; background: rgba(13, 20, 38, 0.92); border: 1px solid var(--border); color: #fff; padding: 13px 16px; border-radius: 14px; font-size: 0.94rem; outline: none; transition: 0.2s; }
+.chat-input-bar input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow); }
+.chat-input-bar button { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #040814; border: none; padding: 0 20px; border-radius: 14px; font-weight: 800; cursor: pointer; flex-shrink: 0; transition: 0.18s; }
+.chat-input-bar button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+#mic-btn { background: rgba(255,255,255,0.07); color: #fff; padding: 0 15px; font-size: 1.1rem; border: 1px solid var(--border); }
+#mic-btn.recording { background: #ef4444; border-color: #ef4444; }
+
+.card { background: var(--card); backdrop-filter: blur(14px); border: 1px solid var(--border); border-radius: 18px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+.card-title { display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.9px; color: var(--accent); margin-bottom: 14px; gap: 8px; flex-wrap: wrap; text-transform: uppercase; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.core-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 10px; }
+
+.core-box { background: rgba(10, 16, 30, 0.72); border: 1px solid var(--border); padding: 11px 13px; border-radius: 12px; font-size: 0.84rem; transition: 0.18s; }
+.core-box:hover { border-color: var(--border-hi); }
+.bar-bg { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; margin-top: 7px; }
+.bar-fill { width: 100%; height: 100%; background: linear-gradient(90deg, var(--accent), #22c55e); border-radius: 99px; transition: clip-path 0.35s ease; }
+
+.gauge-wrap { position: relative; width: 154px; height: 86px; margin: 0 auto; }
+.gauge-svg { width: 100%; height: 100%; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4)); }
+.gauge-bg { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 12; stroke-linecap: round; }
+.gauge-arc { fill: none; stroke: url(#gradGauge); stroke-width: 12; stroke-linecap: round; stroke-dasharray: 220; stroke-dashoffset: 220; transition: stroke-dashoffset 0.5s ease; }
+.gauge-val { position: absolute; bottom: 4px; left: 0; right: 0; text-align: center; font-size: 1.2rem; font-weight: 800; }
+.gauge-sub { text-align: center; font-size: 0.76rem; color: var(--muted); margin-top: 7px; }
+canvas.chart { width: 100% !important; height: 150px !important; }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th, td { padding: 10px 11px; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--muted); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.5px; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+@media (max-width: 820px) {
+  body { flex-direction: column; }
+  aside { width: 100%; height: auto; flex-direction: row; align-items: center; padding: 8px 10px; border-right: none; border-bottom: 1px solid var(--border); overflow-x: auto; gap: 6px; }
+  .brand-box { border-bottom: none; padding: 0 8px 0 0; margin: 0; }
+  .new-chat-btn { margin: 0; padding: 8px 11px; flex-shrink: 0; }
+  .nav-btn { padding: 8px 12px; font-size: 0.82rem; flex-shrink: 0; }
+  .mode-grid, .hud-toggle { display: none; }
+  .topbar { height: 46px; padding: 0 14px; }
+  .view { padding: 12px; gap: 12px; }
+  .card { padding: 14px; border-radius: 15px; }
+  .starter-grid { grid-template-columns: 1fr; }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .grid-2 { grid-template-columns: 1fr; }
+  #view-remote input { min-width: 0; font-size: 16px; }
+  #view-remote div[style*="display:flex"] { flex-wrap: wrap; }
+  #view-remote button { min-height: 44px; font-size: 0.83rem; border-radius: 12px; }
+}
+
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="gradGauge" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#22c55e"/><stop offset="55%" stop-color="#eab308"/><stop offset="100%" stop-color="#ef4444"/></linearGradient></defs></svg>
+
+<aside>
+<div class="brand-box"><div class="orb"></div><div class="brand">RADEMI AI</div></div>
+<button class="new-chat-btn" onclick="newChat()">＋ Neuer Chat</button>
+<button class="nav-btn active" onclick="showView('chat',this)">💬 KI-Assistent</button>
+<button class="nav-btn" onclick="showView('hub',this)">🎛️ Modus-Zentrale</button>
+<button class="nav-btn" onclick="showView('remote',this)">📱 Handy-Remote</button>
+<button class="nav-btn" onclick="showView('dash',this)">📊 Live-Dashboard</button>
+<button class="nav-btn" onclick="showView('cpu',this)">⚡ CPU & Kerne</button>
+<button class="nav-btn" onclick="showView('gpu',this)">🎮 NVIDIA GPU</button>
+<button class="nav-btn" onclick="showView('ram',this)">🧠 Arbeitsspeicher</button>
+<button class="nav-btn" onclick="showView('drives',this)">💾 Laufwerke</button>
+<button class="nav-btn" onclick="showView('net',this)">🌐 Netzwerk</button>
+<button class="nav-btn" onclick="showView('procs',this)">⚙️ Prozesse</button>
+<button class="nav-btn" onclick="showView('mem',this)">🗂️ Gedächtnis & Autostart</button>
+<button class="nav-btn" onclick="showView('sys',this)">🖥️ Systeminfos</button>
+<button id="nav-errors" class="nav-btn" onclick="showView('errors',this)">🐞 Fehler-Monitor</button>
+
+<div class="mode-grid">
+<button id="mb-gaming" class="m-btn" onclick="setProfile('gaming')">🎮 Gaming</button>
+<button id="mb-arbeit" class="m-btn active" onclick="setProfile('arbeit')">💼 Arbeit</button>
+<button id="mb-diagnose" class="m-btn" onclick="setProfile('diagnose')">🩺 Diagnose</button>
+<button id="mb-ki" class="m-btn" onclick="setProfile('ki')">🧠 KI-Power</button>
+</div>
+<button class="hud-toggle" onclick="toggleHud()">📌 Mini-HUD umschalten</button>
+<button class="hud-toggle" onclick="silentCmd('bildschirm schwarz')">⬛ Bildschirm Schwarz</button>
+<button class="hud-toggle" style="border-color:#f59e0b;color:#fbbf24" onclick="restartApp()">🔄 Rademi Neustart</button>
+</aside>
+
+<main>
+<div class="topbar"><span class="page-title" id="v-title">Persönlicher Assistent</span><span class="status-pill" id="mode-pill">💼 Arbeitsmodus aktiv</span></div>
+<div id="alert-bar"></div>
+
+<section id="view-chat" class="view active">
+<div id="chat-box">
+  <div id="welcome-screen" class="welcome-hero">
+    <h1>Willkommen bei RADEMI AI</h1>
+    <div class="starter-grid">
+      <div class="starter-card" onclick="quickCmd('wie ist meine aktuelle pc auslastung')">📊 <b>PC-Status prüfen</b><br><span style="color:var(--muted)">CPU, GPU & RAM live checken</span></div>
+      <div class="starter-card" onclick="showView('remote',document.querySelectorAll('.nav-btn'))">📱 <b>Handy-Fernbedienung</b><br><span style="color:var(--muted)">Touchpad, Live-Screen & Deck</span></div>
+      <div class="starter-card" onclick="quickCmd('wetter bei mir')">🌤️ <b>Aktuelles Wetter</b><br><span style="color:var(--muted)">Vorhersage für deinen Standort</span></div>
+      <div class="starter-card" onclick="quickCmd('was ist auf meinem bildschirm')">🖼️ <b>Bildschirm analysieren</b><br><span style="color:var(--muted)">Aktuellen Screen mit KI lesen</span></div>
+    </div>
+  </div>
+</div>
+<div class="chat-input-bar"><button id="mic-btn" onclick="rec()">🎤</button><input id="prompt" placeholder="Frag mich einfach alles oder gib einen Befehl..." onkeypress="if(event.key==='Enter')send()"><button onclick="send()">Senden</button></div>
+</section>
+
+<section id="view-hub" class="view"><div id="hub-content" style="display:flex;flex-direction:column;gap:16px"></div></section>
+<section id="view-remote" class="view">
+<div id="qr-connect-box" class="card">⏳ Lade Handy-Verbindung & QR-Code...</div>
+<div class="card" style="overflow:visible;display:flex;flex-direction:column;gap:18px;background:linear-gradient(180deg,rgba(15,23,42,.9),rgba(9,13,24,.95))">
+<div id="rem-status" style="background:linear-gradient(90deg,var(--glow),rgba(255,255,255,.04));border:1px solid var(--accent);padding:12px 14px;border-radius:12px;font-size:.88rem;font-weight:600">📱 Kommandozentrale bereit</div>
+
+<div>
+<div class="card-title"><span>📸 LIVE PC-BILDSCHIRM</span><div style="display:flex;gap:6px"><button id="scr-toggle" onclick="toggleLiveScr()" style="background:#22c55e;color:#050811;border:none;padding:7px 12px;border-radius:9px;font-weight:800;cursor:pointer">▶ Live AN</button><button onclick="openLandscapeScr()" style="background:var(--accent);color:#050811;border:none;padding:7px 12px;border-radius:9px;font-weight:800;cursor:pointer">📱 Querformat</button></div></div>
+<div id="scr-wrap" style="background:#000;border-radius:12px;overflow:hidden;border:1px solid var(--border)"><img id="live-scr" src="" alt="Tippe auf Live AN" style="width:100%;max-height:240px;object-fit:contain;display:block"></div>
+</div>
+
+<div style="border-top:1px solid var(--border);padding-top:14px">
+<div class="card-title"><span>🖱️ TOUCHPAD & TASTATUR</span><span style="color:var(--muted);font-size:.7rem">Wischen = Maus · Tippen = Klick</span></div>
+<div id="touchpad" style="height:125px;background:radial-gradient(circle,rgba(255,255,255,.06),rgba(0,0,0,.45));border:1px dashed var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.82rem;touch-action:none;user-select:none;margin-bottom:8px">🖐️ Touchpad-Fläche</div>
+<div class="grid-4" style="margin-bottom:8px">
+<button onclick="sendMouse(0,0,'left')" style="background:rgba(255,255,255,.08);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:700;cursor:pointer">🖱️ Links</button>
+<button onclick="sendMouse(0,0,'right')" style="background:rgba(255,255,255,.08);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:700;cursor:pointer">🖱️ Rechts</button>
+<button onclick="sendKey('alttab','')" style="background:rgba(255,255,255,.08);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:700;cursor:pointer">🔀 Alt+Tab</button>
+<button onclick="sendKey('enter','')" style="background:var(--glow);border:1px solid var(--accent);color:#fff;padding:10px;border-radius:10px;font-weight:700;cursor:pointer">↵ Enter</button>
+</div>
+<div style="display:flex;gap:6px"><input id="rem-txt" placeholder="Nachricht direkt an Rademi auf dem PC..." style="flex:1;background:rgba(0,0,0,.4);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px"><button onclick="sendTxtPC()" style="background:var(--accent);color:#050811;border:none;padding:0 14px;border-radius:10px;font-weight:800;cursor:pointer">Senden</button><button onclick="sendKey('esc','')" style="background:rgba(255,255,255,.08);border:1px solid var(--border);color:#fff;padding:0 12px;border-radius:10px;font-weight:700;cursor:pointer">Esc</button><button onclick="sendKey('space','')" style="background:rgba(255,255,255,.08);border:1px solid var(--border);color:#fff;padding:0 12px;border-radius:10px;font-weight:700;cursor:pointer">␣</button></div>
+</div>
+
+<div style="border-top:1px solid var(--border);padding-top:14px">
+<div class="card-title"><span>🌐 BROWSER & YOUTUBE DECK</span></div>
+<div class="grid-4">
+<button onclick="sendKey('newtab','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">➕ Neuer Tab</button>
+<button onclick="sendKey('closetab','')" style="background:rgba(239,68,68,.18);border:1px solid #ef4444;color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">✖️ Tab Zu</button>
+<button onclick="sendKey('nexttab','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">⇥ Nächster Tab</button>
+<button onclick="sendKey('reopentab','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">↩️ Tab Zurück</button>
+<button onclick="sendKey('f5','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">🔄 Reload F5</button>
+<button onclick="sendKey('j','')" style="background:rgba(56,189,248,.16);border:1px solid #38bdf8;color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">⏪ −10 Sek</button>
+<button onclick="sendKey('k','')" style="background:rgba(56,189,248,.22);border:1px solid #38bdf8;color:#fff;padding:10px;border-radius:10px;font-weight:700;cursor:pointer">⏯️ YT Play</button>
+<button onclick="sendKey('l','')" style="background:rgba(56,189,248,.16);border:1px solid #38bdf8;color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">⏩ +10 Sek</button>
+<button onclick="sendKey('f','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">🖥️ YT Vollbild</button>
+<button onclick="sendKey('c','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">💬 Untertitel</button>
+<button onclick="sendKey('copy','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">📋 Kopieren</button>
+<button onclick="sendKey('paste','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">📥 Einfügen</button>
+</div>
+</div>
+<div style="border-top:1px solid var(--border);padding-top:14px">
+<div class="card-title"><span>🔊 LAUTSTÄRKE & HELLIGKEIT</span><span id="vol-lbl" style="color:#fff;font-weight:800">50 %</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+<button onclick="stepVol(-2)" style="background:rgba(255,255,255,.08);border:1px solid var(--border);color:#fff;padding:9px 12px;border-radius:10px;font-weight:800;cursor:pointer">−2%</button>
+<input id="vol-rng" type="range" min="0" max="100" value="50" oninput="liveVol(this.value)" onchange="liveVol(this.value)" style="flex:1;accent-color:var(--accent);height:32px;cursor:pointer">
+<button onclick="stepVol(2)" style="background:rgba(255,255,255,.08);border:1px solid var(--border);color:#fff;padding:9px 12px;border-radius:10px;font-weight:800;cursor:pointer">+2%</button>
+</div>
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+<span style="font-size:.78rem;color:var(--muted);width:68px">☀️ Helligkeit</span>
+<input type="range" min="10" max="100" value="80" onchange="silentCmd('helligkeit '+this.value)" style="flex:1;accent-color:#fbbf24;height:28px;cursor:pointer">
+</div>
+<div style="display:flex;gap:6px;margin-bottom:8px"><input id="rem-song" placeholder="Song / Künstler auf Spotify abspielen..." style="flex:1;background:rgba(0,0,0,.4);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px"><button onclick="playSongRem()" style="background:#22c55e;color:#050811;border:none;padding:0 14px;border-radius:10px;font-weight:800;cursor:pointer">▶ Play</button></div>
+<div class="grid-4">
+<button onclick="silentCmd('zurück')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:700;cursor:pointer">⏮️ Zurück</button>
+<button onclick="silentCmd('pause')" style="background:var(--glow);border:1px solid var(--accent);color:#fff;padding:11px;border-radius:10px;font-weight:700;cursor:pointer">⏯️ Pause</button>
+<button onclick="silentCmd('weiter')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:700;cursor:pointer">⏭️ Weiter</button>
+<button onclick="silentCmd('ton aus')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:700;cursor:pointer">🔇 Stumm</button>
+</div>
+</div>
+
+<div style="border-top:1px solid var(--border);padding-top:14px">
+<div class="card-title"><span>🎛️ SYSTEM, FENSTER & QUICK-APPS</span></div>
+<input id="rem-app" placeholder="App- oder Bluetooth-Name (z.B. Chrome, Kopfhörer)..." style="width:100%;margin-bottom:10px;background:rgba(0,0,0,.4);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px">
+<div class="grid-4">
+<button onclick="sendKey('snapleft','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">◧ Links Snap</button>
+<button onclick="sendKey('snapright','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">◨ Rechts Snap</button>
+<button onclick="sendKey('deskprev','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">⬅️ Desktop 1</button>
+<button onclick="sendKey('desknext','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">➡️ Desktop 2</button>
+<button onclick="sendKey('snip','')" style="background:rgba(168,85,247,.18);border:1px solid #a855f7;color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">✂️ Screenshot</button>
+<button onclick="sendKey('undo','')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">↶ Rückgängig</button>
+<button onclick="launchApp('Rechner')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">🧮 Rechner</button>
+<button onclick="launchApp('Explorer')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">📁 Explorer</button>
+<button onclick="launchApp('Einstellungen')" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">⚙️ Settings</button>
+<button onclick="silentCmd('fasse meine zwischenablage zusammen')" style="background:rgba(56,189,248,.16);border:1px solid #38bdf8;color:#fff;padding:10px;border-radius:10px;font-weight:600;cursor:pointer">📄 Clipboard KI</button>
+<button onclick="silentCmd('bildschirm schwarz')" style="background:#000;border:1px solid var(--accent);color:#fff;padding:11px;border-radius:10px;font-weight:700;cursor:pointer">⬛ Tarn-Screen</button>
+<button onclick="silentCmd('lock')" style="background:rgba(245,158,11,.2);border:1px solid #f59e0b;color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">🔒 Sperren</button>
+<button onclick="silentCmd('alle fenster minimieren')" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">🪟 Desktop</button>
+<button onclick="silentCmd('energie sparen')" style="background:rgba(245,158,11,.2);border:1px solid #f59e0b;color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">💤 Standby</button>
+<button onclick="remAct('schließe')" style="background:rgba(239,68,68,.2);border:1px solid #ef4444;color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">❌ App Aus</button>
+<button onclick="remAct('minimiere')" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">🔽 Minimieren</button>
+<button onclick="remAct('vollbild')" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">🖥️ Vollbild</button>
+<button onclick="silentCmd('öffne task-manager')" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">📊 Task-Mgr</button>
+<button onclick="remAct('bluetooth verbinden')" style="background:rgba(56,189,248,.18);border:1px solid #38bdf8;color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">🔵 BT An</button>
+<button onclick="remAct('bluetooth trennen')" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">⚪ BT Aus</button>
+<button onclick="silentCmd('bluetooth geräte')" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">📋 BT Liste</button>
+<button onclick="silentCmd('timer 5 min')" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">⏱️ 5m Timer</button>
+<button onclick="silentCmd('workflow gaming')" style="background:rgba(168,85,247,.2);border:1px solid #a855f7;color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">🎮 Gaming</button>
+<button onclick="silentCmd('backup erstellen')" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">💾 Backup</button>
+<button onclick="silentCmd('pc neustarten')" style="background:rgba(239,68,68,.2);border:1px solid #ef4444;color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">🔄 Neustart</button>
+<button onclick="silentCmd('pc herunterfahren')" style="background:rgba(239,68,68,.28);border:1px solid #ef4444;color:#fff;padding:11px;border-radius:10px;font-weight:600;cursor:pointer">🛑 PC Aus</button>
+</div>
+</div>
+</div>
+</section>
+<section id="view-dash" class="view">
+<div class="grid-4">
+<div class="card"><div class="card-title"><span>CPU TEMPERATUR</span><span id="d-cwatt">0 W</span></div><div class="gauge-wrap"><svg class="gauge-svg" viewBox="0 0 170 95"><path class="gauge-bg" d="M 15 85 A 70 70 0 0 1 155 85"/><path class="gauge-arc" id="g-ctemp" d="M 15 85 A 70 70 0 0 1 155 85"/></svg><div class="gauge-val" id="v-ctemp">-- °C</div></div><div class="gauge-sub" id="s-cpu">Last: 0% · 0 MHz</div></div>
+<div class="card"><div class="card-title"><span>GPU TEMPERATUR</span><span id="d-gwatt">0 W</span></div><div class="gauge-wrap"><svg class="gauge-svg" viewBox="0 0 170 95"><path class="gauge-bg" d="M 15 85 A 70 70 0 0 1 155 85"/><path class="gauge-arc" id="g-gtemp" d="M 15 85 A 70 70 0 0 1 155 85"/></svg><div class="gauge-val" id="v-gtemp">-- °C</div></div><div class="gauge-sub" id="s-gpu">Last: 0% · VRAM: 0 GB</div></div>
+<div class="card"><div class="card-title"><span>RAM AUSLASTUNG</span><span id="d-ramgb">0 GB</span></div><div class="gauge-wrap"><svg class="gauge-svg" viewBox="0 0 170 95"><path class="gauge-bg" d="M 15 85 A 70 70 0 0 1 155 85"/><path class="gauge-arc" id="g-ram" d="M 15 85 A 70 70 0 0 1 155 85"/></svg><div class="gauge-val" id="v-ram">0 %</div></div><div class="gauge-sub" id="s-ram">Frei: 0 GB</div></div>
+<div class="card"><div class="card-title"><span>SSD C:\ SPEICHER</span><span id="d-diskgb">0 GB</span></div><div class="gauge-wrap"><svg class="gauge-svg" viewBox="0 0 170 95"><path class="gauge-bg" d="M 15 85 A 70 70 0 0 1 155 85"/><path class="gauge-arc" id="g-disk" d="M 15 85 A 70 70 0 0 1 155 85"/></svg><div class="gauge-val" id="v-disk">0 %</div></div><div class="gauge-sub" id="s-disk">R: 0 MB/s · W: 0 MB/s</div></div>
+</div>
+<div class="grid-2">
+<div class="card"><div class="card-title"><span>CPU VERLAUF (60 SEKUNDEN)</span><span id="c-live-pct">0 %</span></div><canvas id="chart-cpu" class="chart"></canvas></div>
+<div class="card"><div class="card-title"><span>GPU VERLAUF (60 SEKUNDEN)</span><span id="g-live-pct">0 %</span></div><canvas id="chart-gpu" class="chart"></canvas></div>
+</div>
+<div class="card"><div class="card-title"><span>LÜFTER & SENSOREN</span></div><div id="fan-list" class="core-grid">Lade Sensoren...</div></div>
+</section>
+
+<section id="view-cpu" class="view"><div class="card"><div class="card-title"><span>AUSLASTUNG PRO KERN</span><span id="cpu-detail-head">--</span></div><div id="core-grid" class="core-grid"></div></div><div class="card"><div class="card-title"><span>CORE TEMPERATUREN</span></div><div id="core-temp-grid" class="core-grid"></div></div></section>
+<section id="view-gpu" class="view"><div class="card"><div class="card-title"><span id="gpu-model-name">NVIDIA GPU</span><span id="gpu-clk-badge">0 MHz</span></div><div id="gpu-details" class="grid-4"></div></div></section>
+<section id="view-ram" class="view"><div class="card"><div class="card-title"><span>RAM VERLAUF (60 SEKUNDEN)</span><span id="ram-detail-txt">--</span></div><canvas id="chart-ram" class="chart"></canvas></div></section>
+<section id="view-drives" class="view"><div class="card"><div class="card-title"><span>ALLE LAUFWERKE & I/O</span><span id="io-txt">Lesen: 0 MB/s · Schreiben: 0 MB/s</span></div><div id="drives-list" class="grid-2"></div></div></section>
+<section id="view-net" class="view"><div class="card"><div class="card-title"><span>NETZWERK & PING (60 SEKUNDEN)</span><span id="net-status">Prüfe...</span></div><canvas id="chart-net" class="chart"></canvas></div></section>
+<section id="view-procs" class="view"><div class="card"><div class="card-title"><span>TOP PROZESSE (NACH RAM)</span></div><table><thead><tr><th>PID</th><th>Prozess</th><th>CPU %</th><th>RAM (MB)</th></tr></thead><tbody id="proc-body"></tbody></table></div></section>
+
+<section id="view-mem" class="view">
+<div class="card"><div class="card-title"><span>🧠 DAUERHAFTES SQLITE-GEDÄCHTNIS</span></div>
+<div style="display:flex;gap:8px;margin-bottom:12px"><input id="fact-in" placeholder="Neuen Fakt speichern..." style="flex:1;background:rgba(0,0,0,0.35);border:1px solid var(--border);color:#fff;padding:10px;border-radius:10px"><button onclick="addFactUI()" style="background:var(--accent);color:#050811;border:none;padding:0 16px;border-radius:10px;font-weight:700;cursor:pointer">Merken</button></div>
+<div id="facts-list" style="display:flex;flex-direction:column;gap:8px"></div></div>
+<div class="card"><div class="card-title"><span>🚀 WINDOWS 11 AUTOSTART-PROGRAMME</span></div><table><thead><tr><th>Programm</th><th>Bereich</th><th>Startpfad / Befehl</th><th>Aktion</th></tr></thead><tbody id="auto-body"></tbody></table></div>
+</section>
+
+<section id="view-sys" class="view"><div class="card"><div class="card-title"><span>WINDOWS 11 SYSTEMINFORMATIONEN</span></div><table><tbody id="sys-body"></tbody></table></div></section>
+
+<section id="view-errors" class="view">
+<div class="card">
+<div class="card-title"><span>🐞 CODE-FEHLER & CRASH-MONITOR</span><button onclick="clearErrorsUI()" style="background:#dc2626;color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer">🗑️ Liste leeren</button></div>
+<div id="errors-list" style="display:flex;flex-direction:column;gap:10px">⏳ Lade Fehler-Protokoll...</div>
+</div>
+</section>
+</main>
+
+<script src="/charts.js?v=27"></script><script src="/cards.js?v=27"></script><script src="/app.js?v=27"></script>
+</body></html>
