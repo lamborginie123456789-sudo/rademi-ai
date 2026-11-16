@@ -1338,4 +1338,23 @@ function stepVol(d) { const cur = parseInt(document.getElementById('vol-rng').va
 })();
 </script>
 
+
+<script>
+(function(){
+  // Überschreibe drives-Rendering, damit charts.js das Laufwerk niemals leer überschreibt
+  let cachedDriveHtml = '';
+  const origGetEl = document.getElementById.bind(document);
+
+  setInterval(() => {
+    const dList = origGetEl('drives-list');
+    if(!dList || (typeof LOCAL_AGENT_OK !== 'undefined' && LOCAL_AGENT_OK)) return;
+    if(dList.innerHTML.trim().length > 40){
+      cachedDriveHtml = dList.innerHTML;
+    } else if(cachedDriveHtml){
+      dList.innerHTML = cachedDriveHtml;
+    }
+  }, 120);
+})();
+</script>
+
 </body></html>
