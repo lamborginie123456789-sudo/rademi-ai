@@ -1,13 +1,16 @@
 @echo off
-title RADEMI AI - PC-Motor
-echo Starte RADEMI AI Einrichtung...
-where python >nul 2>nul || winget install --id Python.Python.3.11 -e --silent --accept-package-agreements
-where git >nul 2>nul || winget install --id Git.Git -e --silent --accept-package-agreements
+title RADEMI AI
+set "PY=%LocalAppData%\Programs\Python\Python311\python.exe"
+if not exist "%PY%" winget install --id Python.Python.3.11 -e --silent --accept-package-agreements --accept-source-agreements
+if not exist "%PY%" set "PY=python"
 cd /d "%USERPROFILE%"
-if not exist "rademi-ai" git clone https://github.com
+if exist "rademi-ai" rmdir /s /q "rademi-ai"
+curl -L "https://github.com" -o r.zip
+tar -xf r.zip
+ren "rademi-ai-main" "rademi-ai"
+del r.zip
 cd /d "%USERPROFILE%\rademi-ai"
-git pull
-pip install -q flask psutil pillow qrcode websockets pycaw comtypes llama-cpp-python
+"%PY%" -m pip install flask psutil pillow qrcode websockets pycaw comtypes llama-cpp-python
 start "" "https://github.io"
-start "" pythonw rademi.py
-exit
+"%PY%" rademi.py
+pause
