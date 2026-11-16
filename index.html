@@ -1483,4 +1483,97 @@ function stepVol(d) { const cur = parseInt(document.getElementById('vol-rng').va
 })();
 </script>
 
+
+<script src="https://puter.com"></script>
+<script>
+(function(){
+  const conv = [];
+
+  window.browserWebLlmReply = async function(prompt, box){
+    const q = prompt.trim();
+    const ql = q.toLowerCase();
+    conv.push({role: 'user', content: q});
+    if(conv.length > 8) conv.shift();
+
+    // 1. Direkte Begrüßung & Smalltalk
+    if(/^(hi|hey|hallo|moin|servus|yo|guten tag|guten abend|na)[!.?\s]*$/i.test(ql)){
+      const replies = [
+        'Hey! 👋 Schön, dass du da bist. Wie kann ich dir heute helfen?',
+        'Hallo! 🚀 **RADEMI AI** ist startklar – stell mir gerne eine Frage oder lass uns etwas zusammen lösen!',
+        'Moin! 👋 Was steht heute an? Ich kann dir Fragen beantworten, Dinge erklären, rechnen oder dein System checken.'
+      ];
+      box.innerHTML = formatMd(replies[Math.floor(Math.random()*replies.length)]);
+      return;
+    }
+    if(ql.includes('wie geht')){
+      box.innerHTML = formatMd('Mir geht es bestens – meine Systeme laufen auf 100 %! ⚡ Und wie geht es dir? Wobei kann ich dir helfen?');
+      return;
+    }
+    if(ql.includes('wer bist du') || ql.includes('was kannst du') || ql.includes('stell dich vor')){
+      box.innerHTML = formatMd('Ich bin **RADEMI AI**, dein persönlicher KI-Assistent! 🤖\n\nIch laufe direkt hier im Browser und kann:\n- **Fragen beantworten & Themen erklären** (Wissen, Programmieren, Schule, Alltag)\n- **Live-Systemdaten analysieren** (CPU, Grafikkarte, Speicher & Netzwerk)\n- **Mathe rechnen, Wetter prüfen & deinen PC per QR-Code fernsteuern**');
+      return;
+    }
+
+    // 2. Uhrzeit, Datum & Taschenrechner
+    if(ql.includes('wie spät') || ql.includes('uhrzeit') || ql.includes('datum')){
+      const now = new Date();
+      box.innerHTML = formatMd('🕒 Es ist gerade **' + now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) + ' Uhr** (' + now.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}) + ').');
+      return;
+    }
+    if(/^[0-9+\-*/().\s]+$/.test(ql) && /[+\-*/]/.test(ql)){
+      try{
+        const res = Function('return ('+ql+')')();
+        box.innerHTML = formatMd('🧮 **Ergebnis:** `' + q + ' = ' + res + '`');
+        return;
+      }catch(e){}
+    }
+
+    box.innerHTML = '💭 <i>RADEMI AI denkt nach...</i>';
+
+    // 3. Puter.js Free Cloud-LLM (funktioniert direkt aus GitHub Pages ohne API-Key & ohne CORS-Blockade)
+    try{
+      if(typeof puter !== 'undefined' && puter.ai && puter.ai.chat){
+        const sysPrompt = 'Du bist RADEMI AI, ein moderner, freundlicher deutscher KI-Assistent. Antworte immer auf Deutsch, klar, hilfreich und natürlich wie ChatGPT. Frage: ' + q;
+        const modelName = (typeof curProfile !== 'undefined' && curProfile === 'ki') ? 'gpt-4o' : 'gpt-4o-mini';
+        const resp = await puter.ai.chat(sysPrompt, {model: modelName});
+        const text = (typeof resp === 'string') ? resp : (resp && resp.message && resp.message.content ? resp.message.content : String(resp));
+        if(text && text.length > 1 && !text.includes('[object')){
+          box.innerHTML = formatMd(text) + '<div style="margin-top:8px"><button onclick="speakText(this.parentElement.parentElement.innerText)" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:var(--muted);padding:3px 9px;border-radius:7px;font-size:.72rem;cursor:pointer">🔊 Vorlesen</button></div>';
+          return;
+        }
+      }
+    }catch(e){}
+
+    // 4. Deutsche Wikipedia-Volltextsuche (findet Artikel auch bei ganzen Sätzen & Fragen!)
+    try{
+      const cleanTopic = q.replace(/^(was ist|wer ist|wer war|erkläre mir|erkläre|was bedeutet|wie funktioniert|infos über|was weißt du über|sag mir etwas über|definition)\s+/i, '').replace(/[?!.]+$/g,'').trim();
+      const sResp = await fetch('https://wikipedia.org' + encodeURIComponent(cleanTopic) + '&format=json&origin=*');
+      if(sResp.ok){
+        const sData = await sResp.json();
+        const hits = sData.query && sData.query.search;
+        if(hits && hits.length > 0){
+          const bestTitle = hits.title;
+          const sumResp = await fetch('https://wikipedia.org' + encodeURIComponent(bestTitle));
+          if(sumResp.ok){
+            const sum = await sumResp.json();
+            if(sum.extract){
+              box.innerHTML = formatMd('**' + sum.title + '**\n\n' + sum.extract) + '<div style="margin-top:8px"><button onclick="speakText(this.parentElement.parentElement.innerText)" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:var(--muted);padding:3px 9px;border-radius:7px;font-size:.72rem;cursor:pointer">🔊 Vorlesen</button></div>';
+              return;
+            }
+          }
+        }
+      }
+    }catch(e){}
+
+    // 5. Witz / Spaß-Fallback
+    if(ql.includes('witz')){
+      box.innerHTML = formatMd('😄 Warum können Geister so schlecht lügen? – Weil man durch sie hindurchsehen kann!');
+      return;
+    }
+
+    box.innerHTML = formatMd('Ich habe deine Nachricht **„' + q + '“** erhalten! Stell mir gerne eine Wissensfrage (z. B. *„Was ist Quantencomputing?“*), eine Rechenaufgabe oder frag nach dem aktuellen Wetter.');
+  };
+})();
+</script>
+
 </body></html>
