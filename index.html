@@ -531,7 +531,7 @@ async function browserWebLlmReply(prompt, box) {
     try {
         if (!webLlmEngine) {
             box.innerHTML = '⏳ <b>Lade Browser-KI (WebGPU) direkt auf diesem PC...</b><br><span style="color:var(--muted);font-size:.8rem">Läuft komplett auf der Grafikkarte dieses Geräts – keine Installation nötig!</span>';
-            const webllm = await import('https://esm.run');
+            const webllm = await import('https://jsdelivr.net');
             webLlmEngine = await webllm.CreateMLCEngine(''+(curProfile==='ki'?'Qwen2.5-7B-Instruct-q4f16_1-MLC':'Qwen2.5-1.5B-Instruct-q4f16_1-MLC')+'', {
                 initProgressCallback: p => { box.innerHTML = `⏳ <b>Lade Browser-KI:</b> ${p.text}`; }
             });
@@ -552,7 +552,7 @@ async function browserWebLlmReply(prompt, box) {
         }
         box.innerHTML = formatMd(full) + `<div style="margin-top:8px"><button onclick="speakText(this.parentElement.parentElement.innerText)" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:var(--muted);padding:3px 9px;border-radius:7px;font-size:.72rem;cursor:pointer">🔊 Vorlesen</button></div>`;
     } catch (err) {
-        box.innerHTML = formatMd(`**Rademi Browser-Antwort:**\nIch laufe gerade im reinen Browser-Modus ohne lokalen Python-Motor. Hinweis zu WebGPU: \`${err.message}\`\n\nIch laufe gerade im **reinen Schul-/Browser-Modus** ohne lokalen Python-Motor. Auf diesem Schul-PC sind WebGPU-Downloads oder Hardware-Zugriffe durch den Browser eingeschränkt – sobald der **1-Klick PC-Motor** auf einem Windows-PC läuft, stehen alle Live-Sensoren, Maussteuerung und das lokale LLM bereit!`);
+        box.innerHTML = formatMd(`**Rademi Browser-Antwort:**\nIch laufe gerade im reinen Browser-Modus ohne lokalen Python-Motor. Hinweis zu WebGPU: \`${err.message}\`\n\n`);
     }
 }
 
@@ -930,7 +930,7 @@ function stepVol(d) { const cur = parseInt(document.getElementById('vol-rng').va
     try{
       if(!webLlmEngine){
         box.innerHTML = '⏳ <b>Starte '+(curProfile==='ki'?'Großes KI-Modell (7B)':'Standard KI-Modell (1.5B)')+' im Browser...</b>';
-        const webllm = await import('https://esm.run');
+        const webllm = await import('https://jsdelivr.net');
         webLlmEngine = await webllm.CreateMLCEngine(modelId, {initProgressCallback: p => { box.innerHTML = '⏳ <b>Lade KI-Modell:</b> '+p.text; }});
       }
       const chunks = await webLlmEngine.chat.completions.create({
@@ -1056,6 +1056,32 @@ function stepVol(d) { const cur = parseInt(document.getElementById('vol-rng').va
   };
 
   setTimeout(initPeer, 600);
+})();
+</script>
+
+
+<script>
+(function(){
+  const prevReply = window.browserWebLlmReply;
+  window.browserWebLlmReply = async function(prompt, box){
+    const q = prompt.toLowerCase().trim();
+    if(['hi','hey','hallo','moin','servus','guten tag'].some(w => q === w || q.startsWith(w+' '))){
+      box.innerHTML = formatMd('Hey! 👋 Ich bin **RADEMI AI** und laufe direkt hier in deinem Browser. Wie kann ich dir heute helfen?');
+      return;
+    }
+    if(q.includes('wer bist du') || q.includes('was kannst du')){
+      box.innerHTML = formatMd('Ich bin **RADEMI AI**, dein persönlicher KI-Assistent! 🚀\n- **Live-Hardware-Dashboard:** CPU, GPU, RAM & Netzwerk live analysieren\n- **Handy-Remote:** PC per QR-Code direkt vom Smartphone steuern\n- **KI-Modi:** Schnelles Standard-Modell & starkes KI-Power-Modell direkt im Browser');
+      return;
+    }
+    if(/^[0-9+\-*/().\s]+$/.test(q) && /[+\-*/]/.test(q)){
+      try{
+        const res = Function('return ('+q+')')();
+        box.innerHTML = formatMd('🧮 **Ergebnis:** `'+q+' = '+res+'`');
+        return;
+      }catch(e){}
+    }
+    if(prevReply) return prevReply(prompt, box);
+  };
 })();
 </script>
 
