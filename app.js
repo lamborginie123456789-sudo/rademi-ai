@@ -83,7 +83,7 @@ async function browserWebLlmReply(prompt, box) {
         }
         box.innerHTML = formatMd(full) + `<div style="margin-top:8px"><button onclick="speakText(this.parentElement.parentElement.innerText)" style="background:rgba(255,255,255,.07);border:1px solid var(--border);color:var(--muted);padding:3px 9px;border-radius:7px;font-size:.72rem;cursor:pointer">🔊 Vorlesen</button></div>`;
     } catch (err) {
-        box.innerHTML = formatMd(`**Rademi Browser-Antwort:**\nIch laufe gerade im reinen Browser-Modus ohne lokalen Python-Motor. Hinweis zu WebGPU: \`${err.message}\`\n\nTipp: Für volle Hardware-Sensoren & Maussteuerung auf diesem Windows-PC kannst du unter **📱 Handy-Remote** den **1-Klick PC-Motor** starten.`);
+        box.innerHTML = formatMd(`**Rademi Browser-Antwort:**\nIch laufe gerade im reinen Browser-Modus ohne lokalen Python-Motor. Hinweis zu WebGPU: \`${err.message}\`\n\nIch laufe gerade im **reinen Schul-/Browser-Modus** ohne lokalen Python-Motor. Auf diesem Schul-PC sind WebGPU-Downloads oder Hardware-Zugriffe durch den Browser eingeschränkt – sobald der **1-Klick PC-Motor** auf einem Windows-PC läuft, stehen alle Live-Sensoren, Maussteuerung und das lokale LLM bereit!`);
     }
 }
 
