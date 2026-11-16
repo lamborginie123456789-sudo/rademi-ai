@@ -951,4 +951,112 @@ function stepVol(d) { const cur = parseInt(document.getElementById('vol-rng').va
 })();
 </script>
 
+
+<script src="https://unpkg.com"></script>
+<script>
+(function(){
+  let peer = null, conn = null;
+  const urlParams = new URLSearchParams(location.search);
+  const targetPeerId = urlParams.get('pair');
+
+  function handleRemoteAction(data){
+    if(!data || !data.type) return;
+    if(data.type === 'chat'){
+      showView('chat', document.querySelector(".nav-btn[onclick*=\"'chat'\"]"));
+      inp.value = data.text;
+      send();
+    } else if(data.type === 'profile'){
+      setProfile(data.profile);
+    } else if(data.type === 'cmd'){
+      const c = data.cmd.toLowerCase();
+      if(c.includes('schwarz')){
+        let ov = document.getElementById('blackout-ov');
+        if(!ov){ ov=document.createElement('div'); ov.id='blackout-ov'; ov.style='position:fixed;inset:0;background:#000;z-index:99999;cursor:pointer'; ov.onclick=()=>ov.remove(); document.body.appendChild(ov); }
+        else ov.remove();
+      } else {
+        quickCmd(data.cmd);
+      }
+    }
+  }
+
+  function initPeer(){
+    if(typeof Peer === 'undefined') return;
+    const roomId = 'rademi-' + Math.floor(100000 + Math.random()*900000);
+    peer = new Peer(targetPeerId ? undefined : roomId);
+
+    peer.on('open', id => {
+      if(targetPeerId){
+        conn = peer.connect(targetPeerId);
+        conn.on('open', ()=>{
+          const st = document.getElementById('rem-status');
+          if(st) st.innerHTML = '🟢 <b>Mit PC gekoppelt!</b> Alle Befehle gehen live an den PC.';
+          showView('remote', document.querySelector(".nav-btn[onclick*=\"'remote'\"]"));
+        });
+      } else {
+        window._p2pRoomId = id;
+        renderP2pQr();
+      }
+    });
+
+    peer.on('connection', c => {
+      conn = c;
+      const st = document.getElementById('rem-status');
+      if(st) st.innerHTML = '🟢 <b>Handy verbunden!</b> Fernsteuerung aktiv.';
+      c.on('data', handleRemoteAction);
+    });
+  }
+
+  function renderP2pQr(){
+    const box = document.getElementById('qr-connect-box');
+    if(!box || LOCAL_AGENT_OK) return;
+    if(targetPeerId){
+      box.innerHTML = '<div style="font-weight:800;color:#22c55e">📱 HANDY-FERNBEDIENUNG AKTIV (VERBUNDEN)</div>';
+      return;
+    }
+    const rid = window._p2pRoomId || 'wird erstellt...';
+    const pairUrl = location.origin + location.pathname + '?pair=' + encodeURIComponent(rid);
+    const qrImg = 'https://qrserver.com' + encodeURIComponent(pairUrl);
+    box.innerHTML = '<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">' +
+      '<img src="'+qrImg+'" style="width:136px;height:136px;border-radius:12px;border:2px solid var(--accent);background:#fff;padding:6px">' +
+      '<div><div style="font-weight:800;color:var(--accent);font-size:.98rem">📱 HANDY SCHNELL-VERBINDUNG (LIVE-QR)</div>' +
+      '<div style="font-size:.84rem;color:var(--muted);margin:4px 0">Scanne den Code mit deiner Handy-Kamera, um diesen PC sofort ohne App zu steuern.</div>' +
+      '<div style="font-size:.88rem">Raum-ID: <b style="background:var(--glow);padding:2px 8px;border-radius:6px;border:1px solid var(--accent)">'+rid+'</b></div></div></div>';
+  }
+
+  const origInitCard = window.initConnectCard;
+  window.initConnectCard = function(){
+    if(LOCAL_AGENT_OK && origInitCard) return origInitCard();
+    renderP2pQr();
+  };
+
+  const origSilent = window.silentCmd;
+  window.silentCmd = function(cmd){
+    if(conn && conn.open){
+      conn.send({type:'cmd', cmd:cmd});
+      const st = document.getElementById('rem-status');
+      if(st) st.innerHTML = '📨 Befehl an PC gesendet: <b>'+cmd+'</b>';
+      return;
+    }
+    if(origSilent) origSilent(cmd);
+  };
+
+  const origSendTxt = window.sendTxtPC;
+  window.sendTxtPC = function(){
+    const el = document.getElementById('rem-txt');
+    const msg = el ? el.value.trim() : '';
+    if(!msg) return;
+    el.value = '';
+    if(conn && conn.open){
+      conn.send({type:'chat', text:msg});
+      const st = document.getElementById('rem-status');
+      if(st) st.innerHTML = '📨 Nachricht an PC gesendet: <b>'+msg+'</b>';
+      return;
+    }
+    if(origSendTxt) origSendTxt();
+  };
+
+  setTimeout(initPeer, 600);
+})();
+</script>
+
 </body></html>
