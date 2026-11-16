@@ -532,7 +532,7 @@ async function browserWebLlmReply(prompt, box) {
         if (!webLlmEngine) {
             box.innerHTML = '⏳ <b>Lade Browser-KI (WebGPU) direkt auf diesem PC...</b><br><span style="color:var(--muted);font-size:.8rem">Läuft komplett auf der Grafikkarte dieses Geräts – keine Installation nötig!</span>';
             const webllm = await import('https://esm.run');
-            webLlmEngine = await webllm.CreateMLCEngine('Qwen2.5-1.5B-Instruct-q4f16_1-MLC', {
+            webLlmEngine = await webllm.CreateMLCEngine(''+(curProfile==='ki'?'Qwen2.5-7B-Instruct-q4f16_1-MLC':'Qwen2.5-1.5B-Instruct-q4f16_1-MLC')+'', {
                 initProgressCallback: p => { box.innerHTML = `⏳ <b>Lade Browser-KI:</b> ${p.text}`; }
             });
         }
@@ -684,7 +684,7 @@ async function initConnectCard() {
     const box = document.getElementById('qr-connect-box');
     if (!box) return;
     if (!LOCAL_AGENT_OK) {
-        box.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px"><div style="font-weight:800;color:var(--accent);font-size:.95rem">🌐 BROWSER-MODUS AKTIV (OHNE INSTALLATION)</div><div style="font-size:.84rem;color:var(--muted)">Die KI läuft direkt über <b>WebGPU</b> in deinem Browser. Für volle Windows-Steuerung (Maus, Live-Screen, Hardware-Sensoren) kannst du hier den 1-Klick-Motor starten:</div><div><button onclick="dlStarterBat()" style="background:#22c55e;color:#050811;border:none;padding:9px 14px;border-radius:9px;font-weight:800;cursor:pointer;font-size:.84rem">📥 PC-Motor herunterladen (Rademi_Start.bat)</button></div></div>`;
+        box.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px"><div style="font-weight:800;color:var(--accent);font-size:.95rem">🌐 BROWSER-MODUS AKTIV (OHNE INSTALLATION)</div><div style="font-size:.84rem;color:var(--muted)">Die KI läuft direkt über <b>WebGPU</b> in deinem Browser. Direkt im Browser einsatzbereit – wähle links zwischen Standard-KI und KI-Power.</div><div></div></div>`;
         return;
     }
     try {
