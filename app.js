@@ -2,14 +2,20 @@ const API_BASE = (location.protocol === 'https:' || (location.hostname !== '127.
     ? (localStorage.getItem('rademi_host') || 'http://127.0.0.1:5005')
     : '';
 const MASTER_HOST = 'https://trycloudflare.com';
+const IS_MASTER_PC = (location.hostname === '127.0.0.1' || location.hostname === 'localhost');
 let LOCAL_AGENT_OK = false, webLlmEngine = null;
+
+if (!IS_MASTER_PC) {
+    const errBtn = document.getElementById('nav-errors');
+    if (errBtn) errBtn.style.display = 'none';
+}
 
 function reportCodeError(src, msg) {
     try {
         fetch((LOCAL_AGENT_OK ? API_BASE : MASTER_HOST) + '/api/report_error', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ src, msg: String(msg), host: 'Web-Client' })
+            body: JSON.stringify({ src, msg: String(msg), host: navigator.platform || 'Web-Client' })
         }).catch(() => {});
     } catch (e) {}
 }
@@ -91,7 +97,7 @@ function applyProfileUI(p) {
 async function renderHub(p) {
     const cfg = PROFILES[p] || PROFILES.arbeit, box = document.getElementById('hub-content'); if (!box) return;
     const appBtns = cfg.apps.map(a => `<button onclick="launchApp('${a}')" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:#fff;padding:12px;border-radius:12px;font-weight:600;cursor:pointer">🚀 ${a}</button>`).join('');
-    const actBtns = cfg.acts.map(x => `<button onclick="quickCmd('${x}')" style="background:var(--glow);border:1px solid var(--accent);color:#fff;padding:12px;border-radius:12px;font-weight:600;cursor:pointer">${x}</button>`).join('');
+    const actBtns = cfg.acts.map(x => `<button onclick="quickCmd('${x[1]}')" style="background:var(--glow);border:1px solid var(--accent);color:#fff;padding:12px;border-radius:12px;font-weight:600;cursor:pointer">${x[0]}</button>`).join('');
     box.innerHTML = `<div class="card"><div class="card-title"><span>🚀 APPS (${p.toUpperCase()})</span></div><div class="grid-4">${appBtns}</div></div><div class="card"><div class="card-title"><span>⚡ AKTIONEN</span></div><div class="grid-2">${actBtns}</div></div>`;
 }
 async function launchApp(app) { await fetch('/api/launch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ app }) }); }
@@ -117,7 +123,7 @@ function showView(id, btn) {
     if (id === 'procs') loadProcs();
     if (id === 'sys') loadSys();
     if (id === 'mem') loadMemAndAuto();
-    if (id === 'errors') loadErrorsUI();
+    if (id === 'errors' && IS_MASTER_PC) loadErrorsUI();
 }
 
 async function loadMemAndAuto() {
@@ -149,7 +155,7 @@ async function loadSys() {
 
 const chat = document.getElementById('chat-box'), inp = document.getElementById('prompt');
 function add(t, s) { const w = document.getElementById('welcome-screen'); if (w) w.remove(); const d = document.createElement('div'); d.className = 'msg ' + s; d.textContent = t; chat.appendChild(d); chat.scrollTop = chat.scrollHeight; return d; }
-function newChat() { showView('chat', document.querySelector('.nav-btn')); chat.innerHTML = `<div id="welcome-screen" class="welcome-hero"><h1>Willkommen bei RADEMI AI</h1><div class="starter-grid"><div class="starter-card" onclick="quickCmd('wie ist meine aktuelle pc auslastung')">📊 <b>PC-Status prüfen</b><br><span style="color:var(--muted)">CPU, GPU & RAM live checken</span></div><div class="starter-card" onclick="showView('remote',document.querySelectorAll('.nav-btn'))">📱 <b>Handy-Fernbedienung</b><br><span style="color:var(--muted)">Touchpad, Live-Screen & Deck</span></div><div class="starter-card" onclick="quickCmd('wetter bei mir')">🌤️ <b>Aktuelles Wetter</b><br><span style="color:var(--muted)">Vorhersage für deinen Standort</span></div><div class="starter-card" onclick="quickCmd('was ist auf meinem bildschirm')">🖼️ <b>Bildschirm analysieren</b><br><span style="color:var(--muted)">Aktuellen Screen mit KI lesen</span></div></div></div>`; }
+function newChat() { showView('chat', document.querySelector('.nav-btn')); chat.innerHTML = `<div id="welcome-screen" class="welcome-hero"><h1>Willkommen bei RADEMI AI</h1><div class="starter-grid"><div class="starter-card" onclick="quickCmd('wie ist meine aktuelle pc auslastung')">📊 <b>PC-Status prüfen</b><br><span style="color:var(--muted)">CPU, GPU & RAM live checken</span></div><div class="starter-card" onclick="showView('remote',document.querySelectorAll('.nav-btn')[2])">📱 <b>Handy-Fernbedienung</b><br><span style="color:var(--muted)">Touchpad, Live-Screen & Deck</span></div><div class="starter-card" onclick="quickCmd('wetter bei mir')">🌤️ <b>Aktuelles Wetter</b><br><span style="color:var(--muted)">Vorhersage für deinen Standort</span></div><div class="starter-card" onclick="quickCmd('was ist auf meinem bildschirm')">🖼️ <b>Bildschirm analysieren</b><br><span style="color:var(--muted)">Aktuellen Screen mit KI lesen</span></div></div></div>`; }
 async function send() {
     const t = inp.value.trim(); if (!t) return; add(t, 'user'); inp.value = ''; const box = add('▌', 'ai');
     if (!LOCAL_AGENT_OK) { await browserWebLlmReply(t, box); chat.scrollTop = chat.scrollHeight; return; }
@@ -195,7 +201,7 @@ window.fetch = function(u, opt = {}) {
                 disk_text: 'Cloud / Web-App', disk_pct: 35, disk_read_mb: 0, disk_write_mb: 0, drives: [],
                 net_down: 0.4, net_up: 0.1, ping_ms: 18, net_online: navigator.onLine, fans: [],
                 extra_sensors: [{ name: 'Browser-Modus', sub: 'WebGPU aktiv (ohne Installation)', val: 'Online' }],
-                history: { cpu: fake.concat(fake), gpu:, ram:, net: [0.2, 0.4, 0.3] }
+                history: { cpu: fake.concat(fake), gpu:, ram:, net: [0.2, 0.4, 0.3, 0.4] }
             }), { headers: { 'Content-Type': 'application/json' } }));
         }
         if (u.startsWith('/api/screen') || u.startsWith('/api/stream.mjpg')) u += (u.includes('?') ? '&' : '?') + 'pin=' + encodeURIComponent(pin);
@@ -225,7 +231,7 @@ async function initConnectCard() {
 }
 checkLocalAgent().then(() => { syncMode(); initConnectCard(); });
 
-if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') {
+if (IS_MASTER_PC) {
     setInterval(async () => {
         if (!LOCAL_AGENT_OK) return;
         try {
@@ -233,11 +239,13 @@ if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') {
             if (d.prompt) quickCmd(d.prompt);
         } catch (e) {}
     }, 900);
+    setInterval(loadErrorsUI, 4000);
 }
 
 async function loadErrorsUI() {
+    if (!IS_MASTER_PC) return;
     try {
-        const list = await (await _origFetch((LOCAL_AGENT_OK ? API_BASE : MASTER_HOST) + '/api/errors')).json();
+        const list = await (await fetch('/api/errors')).json();
         const btn = document.getElementById('nav-errors');
         if (btn) btn.innerHTML = list.length ? `🐞 Fehler-Monitor <span style="background:#ef4444;color:#fff;padding:1px 7px;border-radius:99px;font-size:.72rem;margin-left:4px">${list.length}</span>` : '🐞 Fehler-Monitor';
         const box = document.getElementById('errors-list');
@@ -248,8 +256,7 @@ async function loadErrorsUI() {
     } catch (e) {}
 }
 function analyzeErrorWithAI(idx) { const e = (window._lastErrors || []).at(idx); if (e) quickCmd(`Analysiere bitte diesen Fehler in Rademi (${e.src} auf ${e.host}) und zeige mir den Fix:\n${e.msg}`); }
-async function clearErrorsUI() { await _origFetch((LOCAL_AGENT_OK ? API_BASE : MASTER_HOST) + '/api/errors', { method: 'DELETE' }); loadErrorsUI(); }
-setInterval(loadErrorsUI, 4000);
+async function clearErrorsUI() { await fetch('/api/errors', { method: 'DELETE' }); loadErrorsUI(); }
 async function silentCmd(cmd) {
     const st = document.getElementById('rem-status'); if (st) st.textContent = '⏳ ' + cmd + '...';
     if (!LOCAL_AGENT_OK) { if (st) st.textContent = 'ℹ️ Für PC-Steuerung erst den 1-Klick-Motor oben herunterladen.'; return; }
